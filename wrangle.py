@@ -1,28 +1,38 @@
-
 import pandas as pd
+import numpy as np
 import os
 
 from env import get_connection
 from sklearn.model_selection import train_test_split
 
 # 
-def get_zillow():
+def get_zillow_mvp():
     '''
-    imports edroomcnt, bathroomcnt, calculatedfinishedsquarefeet, taxvaluedollarcnt, yearbuilt, taxamount, and fips from the zillow_2017 table
+    MVP query
     
     cache's dataframe in a .csv
     '''
-    filename = 'zillow.csv'
+    filename = 'mvp.csv'
     
     if os.path.isfile(filename):
         return pd.read_csv(filename)
     
     else:
         query ='''
-                SELECT bedroomcnt, bathroomcnt, calculatedfinishedsquarefeet, taxvaluedollarcnt, yearbuilt, taxamount, fips
-                FROM properties_2017
-                WHERE propertylandusetypeid = 261
-                ;
+               SELECT bathroomcnt, bedroomcnt, calculatedfinishedsquarefeet, taxvaluedollarcnt
+FROM properties_2017
+WHERE propertylandusetypeid = (
+                                SELECT propertylandusetypeid
+                                FROM propertylandusetype
+                                WHERE propertylandusedesc = 'Single Family Residential'
+                                )
+AND parcelid IN (
+                SELECT parcelid
+                FROM predictions_2017
+                WHERE LEFT(transactiondate, 4) = '2017'
+                )
+
+;
                 '''
         
         url = get_connection('zillow')
@@ -30,24 +40,30 @@ def get_zillow():
         df.to_csv(filename, index=False)
         
         return df
-    
+
     
   
-def drop_zill(zillow):    
+def drop_zill_mvp(zillow):    
     '''
-    Dropping all null values
-    Drops 12,628 observations  
+    Dropping 1 null values
+    bed 7 = 6 plus
+    bath 6 = 5.5+
+    rename columns 
     '''
+    zillow.dropna(inplace= True)
+    zillow.rename(columns = {'bedroomcnt':'bed', 'bathroomcnt':'bath', 'calculatedfinishedsquarefeet': 'sqft', 'taxvaluedollarcnt': 'value'}, inplace=True)
+    zillow['bath'] = np.where(zillow['bath'] >= 5.5, '6', zillow['bath'])
+    zillow['bed'] = np.where(zillow['bed'] >= 7, '8', zillow['bed'])
     
-    zillow = zillow.dropna()
-    zillow = zillow.rename(columns = {'bedroomcnt':'bed', 'bathroomcnt':'bath', 
-                                  'calculatedfinishedsquarefeet': 'sqft', 'taxvaluedollarcnt': 'value', 
-                                  'yearbuilt': 'year', 'taxamount':'tax'})
     return zillow
 
 
 
 def train_val_test(df, seed = 55):
+    '''
+    splits to train val test
+    TAKES 1 df
+    '''
     train, val_test = train_test_split(df, train_size = 0.7,
                                        random_state = seed)
     
@@ -61,7 +77,7 @@ def X_y_split(train, val, target):
     '''
     Splits train and val into X and Y splits for target testing.
     
-    target is target variable entered as the name of the column only 
+    target is target variable entered as the name of the column only in quotes 
     
     returns X_train, y_train , X_val , y_val
     '''

@@ -110,11 +110,12 @@
 
 # Takeaways and Conclusions
 * All elements of the MVP features effect value.
-* Our model can predect the value of any house with an RSME of 562,913.96
+* Our model can predect the value of any house with an RMSE of 562,913.96
 
 
-# Recommendations
+# Recommendations and Next Steps
 * We should focus on size, number of baths and number of bedrooms to predict price.
-* I would like to get into the location data plot the lat longs.
-* Next would be to fine tune models by going through hyperparameters.
-* Limit data and train models on different location and price catagories.
+* Continue plotting location data for the rest of the city to determine neighborhood price fluxuations.
+* Fine tune models by weighing hyperparameters.
+* Limit data and train models on different location and price catagories for more focued accurate models.
+* Intergrate Google Earth API for city facilities data.

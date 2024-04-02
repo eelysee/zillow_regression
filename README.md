@@ -10,7 +10,7 @@
 # Project Goal
 * Find drivers for housing price on the Zillow 2017 dataset. Why are customers churning?
 * Construct a ML classification model that accurately predicts customer churn
-* Present your process and findings to the lead data scientist
+* Present process and findings to the lead data scientist
 
 # Steps to Reproduce
 1) Clone this repo.
